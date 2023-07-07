@@ -94,7 +94,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         source: "infra"
-        target: "foodgram/infra"
+        target: "foodgram"
     - name: Copy docs via ssh
       uses: appleboy/scp-action@master
       with:
@@ -103,7 +103,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         source: "docs"
-        target: "foodgram/docs"
+        target: "foodgram"
     - name: Copy data via ssh
       uses: appleboy/scp-action@master
       with:
@@ -112,7 +112,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         source: "data"
-        target: "foodgram/data"
+        target: "foodgram"
     - name: Executing remote ssh commands to deploy
       uses: appleboy/ssh-action@master
       with:
@@ -121,7 +121,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         script: |
-          cd kittygram
+          cd foodgram/infra
           sudo docker compose -f docker-compose.production.yml pull
           sudo docker compose -f docker-compose.production.yml down
           sudo docker compose -f docker-compose.production.yml up -d
@@ -137,4 +137,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: Деплой Kittygram успешно выполнен!
+        message: Деплой FoodGram успешно выполнен!
