@@ -11,15 +11,13 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
   backend:
-    build: ../backend/
+    image: niktimo/foodgram_frontend
     env_file: ../.env
     volumes:
       - ../data:/app/data
       - media:/app/media
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: niktimo/foodgram_frontend
     volumes:
       - static:/app/result_build/
   nginx:
