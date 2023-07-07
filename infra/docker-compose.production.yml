@@ -14,7 +14,7 @@ services:
     volumes:
       - ../data:/app/data
       - media:/app/media
-      - static://app/collected_static
+      - static:/app/collected_static
   frontend:
     image: niktimo/foodgram_frontend
     volumes:
