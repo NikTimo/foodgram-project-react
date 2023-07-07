@@ -1,5 +1,4 @@
-# .github/workflows/main.yml
-name: Main Taski workflow
+name: Main Foodgram workflow
 
 on:
   push:
