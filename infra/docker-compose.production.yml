@@ -7,15 +7,14 @@ volumes:
 services:
   db:
     image: postgres:13.10
-    env_file: ../.env
     volumes:
       - pg_data:/var/lib/postgresql/data
   backend:
     image: niktimo/foodgram_frontend
-    env_file: ../.env
     volumes:
       - ../data:/app/data
       - media:/app/media
+      - static://app/collected_static
   frontend:
     image: niktimo/foodgram_frontend
     volumes:
