@@ -1,9 +1,9 @@
-name: Main Kittygram workflow
+name: Main FoodGram workflow
 
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   tests:
