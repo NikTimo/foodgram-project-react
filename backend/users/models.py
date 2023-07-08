@@ -7,13 +7,18 @@ User = get_user_model()
 
 class Subscribe(models.Model):
     subscriber = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='follower'
+        User, on_delete=models.CASCADE,
+        verbose_name='Подписчик', related_name='follower'
+
     )
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='following', unique=False
+        User, on_delete=models.CASCADE,
+        verbose_name='Автор', related_name='following', unique=False
     )
 
     class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
         constraints = [
             UniqueConstraint(
                 fields=['subscriber', 'author'],

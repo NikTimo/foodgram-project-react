@@ -1,6 +1,6 @@
 import base64
 
-from django.db.models import F
+from django.db import transaction
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
@@ -61,12 +61,31 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class IngredinetsRecipeSerializer(serializers.ModelSerializer):
+class IngredientsRecipeSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
 
     class Meta:
         model = IngredientRecipe
         fields = ('id', 'amount',)
+
+
+class IngredientsRecipeSafeMethodSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    measurement_unit = serializers.SerializerMethodField()
+
+    def get_id(self, obj):
+        return obj.ingredient.id
+
+    def get_name(self, obj):
+        return obj.ingredient.name
+
+    def get_measurement_unit(self, obj):
+        return obj.ingredient.measurement_unit
+
+    class Meta:
+        model = IngredientRecipe
+        fields = ('id', 'name', 'measurement_unit', 'amount',)
 
 
 class RecipeSafeMethodSerializer(serializers.ModelSerializer):
@@ -80,12 +99,10 @@ class RecipeSafeMethodSerializer(serializers.ModelSerializer):
     is_in_shopping_cart = serializers.SerializerMethodField()
 
     def get_ingredients(self, obj):
-        return obj.ingredients.values(
-            'id',
-            'name',
-            'measurement_unit',
-            amount=F('ingredientrecipe__amount')
-        )
+        return IngredientsRecipeSafeMethodSerializer(
+            IngredientRecipe.objects.filter(recipe=obj),
+            many=True
+        ).data
 
     def get_is_favorited(self, obj):
         if self.context['request'].user.is_anonymous:
@@ -107,24 +124,32 @@ class RecipeSafeMethodSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(RecipeSafeMethodSerializer):
-    ingredients = IngredinetsRecipeSerializer(many=True)
+    ingredients = IngredientsRecipeSerializer(many=True)
+    author = CustomDjoserUserSerializer(
+        default=serializers.CurrentUserDefault()
+    )
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True
     )
 
+    @transaction.atomic
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
+        ingredient_recipe_list = []
         for ingredient in ingredients:
-            IngredientRecipe.objects.create(
-                ingredient=Ingredient.objects.filter(
-                    id=ingredient['id']
-                ).first(),
-                recipe=recipe,
-                amount=ingredient['amount']
+            ingredient_recipe_list.append(
+                IngredientRecipe(
+                    ingredient=Ingredient.objects.filter(
+                        id=ingredient['id']
+                    ).first(),
+                    recipe=recipe,
+                    amount=ingredient['amount']
+                )
             )
+        IngredientRecipe.objects.bulk_create(ingredient_recipe_list)
         return recipe
 
     def update(self, instance, validated_data):
@@ -132,14 +157,18 @@ class RecipeSerializer(RecipeSafeMethodSerializer):
         ingredients = validated_data.pop('ingredients')
         instance.tags.set(tags)
         instance.ingredients.clear()
+        ingredient_recipe_list = []
         for ingredient in ingredients:
-            IngredientRecipe.objects.create(
-                ingredient=Ingredient.objects.filter(
-                    id=ingredient['id']
-                ).first(),
-                recipe=instance,
-                amount=ingredient['amount']
+            ingredient_recipe_list.append(
+                IngredientRecipe(
+                    ingredient=Ingredient.objects.filter(
+                        id=ingredient['id']
+                    ).first(),
+                    recipe=instance,
+                    amount=ingredient['amount']
+                )
             )
+        IngredientRecipe.objects.bulk_create(ingredient_recipe_list)
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):

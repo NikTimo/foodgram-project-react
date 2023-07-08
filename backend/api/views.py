@@ -37,9 +37,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
             return RecipeSafeMethodSerializer
@@ -160,10 +157,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CustomDjoserUserViewSet(UserViewSet):
+    queryset = User.objects.all()
     pagination_class = CustomUserPagionation
-
-    def get_queryset(self):
-        return User.objects.all()
 
     @action(
         detail=False,

@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import Ingredient, Recipe, Tag, Favorite, ShoppingCart
+from recipes.models import (
+    Ingredient, Recipe, Tag, Favorite, ShoppingCart, IngredientRecipe
+)
+
+
+class IngredientRecipeAdmin(admin.TabularInline):
+    model = IngredientRecipe
+    extra = 1
 
 
 class IngridientAdmin(admin.ModelAdmin):
@@ -11,6 +18,7 @@ class IngridientAdmin(admin.ModelAdmin):
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author')
     list_filter = ('author', 'name', 'tags',)
+    inlines = (IngredientRecipeAdmin,)
 
 
 admin.site.register(Ingredient, IngridientAdmin)
