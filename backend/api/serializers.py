@@ -125,9 +125,6 @@ class RecipeSafeMethodSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(RecipeSafeMethodSerializer):
     ingredients = IngredientsRecipeSerializer(many=True)
-    author = CustomDjoserUserSerializer(
-        default=serializers.CurrentUserDefault()
-    )
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True
     )
@@ -136,15 +133,15 @@ class RecipeSerializer(RecipeSafeMethodSerializer):
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(**validated_data)
+        recipe = Recipe.objects.create(
+            author=self.context.get('request').user, **validated_data
+        )
         recipe.tags.set(tags)
         ingredient_recipe_list = []
         for ingredient in ingredients:
             ingredient_recipe_list.append(
                 IngredientRecipe(
-                    ingredient=Ingredient.objects.filter(
-                        id=ingredient['id']
-                    ).first(),
+                    ingredient_id=ingredient['id'],
                     recipe=recipe,
                     amount=ingredient['amount']
                 )
@@ -152,6 +149,7 @@ class RecipeSerializer(RecipeSafeMethodSerializer):
         IngredientRecipe.objects.bulk_create(ingredient_recipe_list)
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
@@ -161,9 +159,7 @@ class RecipeSerializer(RecipeSafeMethodSerializer):
         for ingredient in ingredients:
             ingredient_recipe_list.append(
                 IngredientRecipe(
-                    ingredient=Ingredient.objects.filter(
-                        id=ingredient['id']
-                    ).first(),
+                    ingredient_id=ingredient['id'],
                     recipe=instance,
                     amount=ingredient['amount']
                 )
