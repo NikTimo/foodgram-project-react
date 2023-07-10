@@ -131,7 +131,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 'errors': 'Ваша корзина пуста'
             }, status=status.HTTP_400_BAD_REQUEST)
         ingredient_list = IngredientRecipe.objects.filter(
-            recipe__shoppingcart__user_id=request.user.id
+            recipe__in_shopping_list__user=request.user
         ).values(
             'ingredient__name', 'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount'))
@@ -169,7 +169,7 @@ class CustomDjoserUserViewSet(UserViewSet):
             SubscribeSerializer(
                 self.paginate_queryset(
                     User.objects.filter(
-                        following__subscriber_id=self.request.user.id
+                        following__subscriber=self.request.user
                     )
                 ),
                 many=True,
