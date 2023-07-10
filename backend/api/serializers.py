@@ -126,7 +126,7 @@ class RecipeSafeMethodSerializer(serializers.ModelSerializer):
 class RecipeSerializer(RecipeSafeMethodSerializer):
     ingredients = IngredientsRecipeSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(), many=True, required=False
+        queryset=Tag.objects.all(), many=True
     )
 
     @transaction.atomic
