@@ -133,5 +133,6 @@ dmypy.json
 .idea
 
 .vscode
-requests
+requests.http
 code
+requests_remote.http
