@@ -89,7 +89,7 @@ class IngredientsRecipeSafeMethodSerializer(serializers.ModelSerializer):
 
 
 class RecipeSafeMethodSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, required=False)
+    tags = TagSerializer(many=True)
     author = CustomDjoserUserSerializer(
         read_only=True, default=serializers.CurrentUserDefault()
     )
