@@ -196,6 +196,14 @@ class SubscribeSerializer(CustomDjoserUserSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     def get_recipes(self, obj):
+        if 'recipes_limit' in self.context.get('request').GET:
+            return RecipeShortSerializer(
+                Recipe.objects.filter(author=obj)[
+                    :int(self.context.get('request').GET['recipes_limit'])
+                ],
+                context={'request': self.context.get('request')},
+                many=True
+            ).data
         return RecipeShortSerializer(
             Recipe.objects.filter(author=obj),
             context={'request': self.context.get('request')},
